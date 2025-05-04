@@ -24,7 +24,7 @@ st.markdown("""
     /* Main App Background */
     body, .stApp {
         background-color: #0a0a0a;
-        background-image: url('hhttps://static.hbo.com/game-of-thrones-1-1920x1080.jpg');
+        background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTlVU6rEZYD4eAn-SSMGgFjy-nNyhxxnXeRA&s');
         background-size: cover;
         background-attachment: fixed;
         color: #d4af37;
