@@ -1,4 +1,4 @@
-# app.py - Game of Thrones Themed ML Platform (Fixed Version)
+# app.py - Game of Thrones Themed ML Platform
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -12,7 +12,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 # Configure page
 st.set_page_config(
-    page_title="⚔️ Throne of ML - By Hashir Jafry",
+    page_title="⚔️ Throne of ML - By Hashir",
     page_icon="⚔️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -24,7 +24,7 @@ st.markdown("""
     /* Main App Background */
     body, .stApp {
         background-color: #0a0a0a;
-        background-image: url('https://static.hbo.com/game-of-thrones-1-1920x1080.jpg');
+        background-image: url('hhttps://static.hbo.com/game-of-thrones-1-1920x1080.jpg');
         background-size: cover;
         background-attachment: fixed;
         color: #d4af37;
@@ -56,6 +56,10 @@ st.markdown("""
         background-color: rgba(10, 10, 10, 0.9) !important;
         border-right: 2px solid #d4af37;
         font-family: 'Game of Thrones', cursive;
+        background-image: url('https://i.imgur.com/5zJQY9a.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: bottom right;
     }
     
     /* Buttons */
@@ -169,17 +173,27 @@ st.markdown("""
     .js-plotly-plot .plotly, .js-plotly-plot .plotly div {
         background-color: rgba(20, 20, 20, 0.9) !important;
     }
+    
+    /* House Sigil Decoration */
+    .house-sigil {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+        width: 120px;
+        opacity: 0.8;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-def clean_data(df):
-    """Handle missing values and infinite numbers"""
-    df = df.replace([np.inf, -np.inf], np.nan)
-    df = df.dropna()
-    return df
-
+# Main Function
 def main():
     st.markdown('<div class="main">', unsafe_allow_html=True)
+    
+    # Add House Sigil decoration
+    st.markdown("""
+    <img src="https://i.imgur.com/5zJQY9a.png" class="house-sigil">
+    """, unsafe_allow_html=True)
     
     st.title("⚔️ Throne of ML")
     st.markdown("---")
@@ -212,10 +226,7 @@ def main():
                 df = pd.read_csv(uploaded_file)
             else:
                 df = pd.read_excel(uploaded_file)
-            
-            # Clean the data
-            df = clean_data(df)
-            
+                
             numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
             if len(numeric_cols) < 2:
                 st.error("⚔️ You need at least 2 numeric battle metrics!")
@@ -290,7 +301,7 @@ def main():
         if st.button("⚔️ Train Your Army"):
             st.session_state.steps['ready_for_model'] = True
 
-    # Step 3: Model Training (Fixed)
+    # Step 3: Model Training
     if st.session_state.steps.get('ready_for_model'):
         st.header("3. Train Your Forces")
         df = st.session_state.data
@@ -300,31 +311,22 @@ def main():
         X = df[features]
         y = df[target]
         
-        # Additional data validation
-        if X.empty or y.empty:
-            st.error("🔥 No valid data to train! Check your battle factors and target.")
-            return
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        
+        model = LinearRegression() if model_type == "Linear Regression" else RandomForestRegressor(n_estimators=100, random_state=42)
+        
+        with st.spinner(f"⚔️ Training {model_type} forces..."):
+            model.fit(X_train_scaled, y_train)
+            st.session_state.model = model
+            st.session_state.steps['trained'] = True
             
-        try:
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
-            scaler = StandardScaler()
-            X_train_scaled = scaler.fit_transform(X_train)
-            X_test_scaled = scaler.transform(X_test)
-            
-            model = LinearRegression() if model_type == "Linear Regression" else RandomForestRegressor(n_estimators=100, random_state=42)
-            
-            with st.spinner(f"⚔️ Training {model_type} forces..."):
-                model.fit(X_train_scaled, y_train)
-                st.session_state.model = model
-                st.session_state.steps['trained'] = True
-                
-                y_pred = model.predict(X_test_scaled)
-                st.session_state.predictions = {'y_test': y_test, 'y_pred': y_pred, 'X_test': X_test}
-                st.success("🏆 Victory! Training complete!")
-                st.balloons()
-                
-        except Exception as e:
-            st.error(f"🔥 Training failed: {str(e)}")
+            y_pred = model.predict(X_test_scaled)
+            st.session_state.predictions = {'y_test': y_test, 'y_pred': y_pred, 'X_test': X_test}
+            st.success("🏆 Victory! Training complete!")
+            st.balloons()
 
     # Step 4: Evaluation
     if st.session_state.steps.get('trained'):
